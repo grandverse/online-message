@@ -1,14 +1,15 @@
-name = "web-message-board"
+name = "worker-online-message"
 main = "src/index.js"
-compatibility_date = "2024-01-01"
+compatibility_date = "2025-12-04"
 
 # D1 Database binding
 [[d1_databases]]
 binding = "DB"
-database_name = "message-board-db"
-database_id = "b75aabf3-b0c7-4621-afc3-691587ec5e2e"  #  D1 数据库 ID
+database_name = "online-message-board"
+database_id = "de566895-8597-4697-98b9-6b06f36d0925"  #  D1 数据库 ID
 
 # Rules for importing HTML file
 [[rules]]
 type = "Text"
 globs = ["**/*.html"]
+fallthrough = true

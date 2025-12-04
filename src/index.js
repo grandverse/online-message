@@ -32,7 +32,7 @@ export default {
       // API: Get all messages
       if (path === '/api/messages' && request.method === 'GET') {
         const { results } = await env.DB.prepare(
-          'SELECT id, content, email, created_at FROM messages ORDER BY created_at ASC LIMIT 10'
+          'SELECT id, content, email, created_at FROM messages ORDER BY created_at DESC LIMIT 100'
         ).all();
 
         return new Response(JSON.stringify({ messages: results }), {
@@ -63,7 +63,8 @@ export default {
         }
 
         // Email validation
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+        // const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         if (!emailRegex.test(email)) {
           return new Response(
             JSON.stringify({ error: '邮箱格式不正确' }),
@@ -91,14 +92,29 @@ export default {
           );
         }
 
-        // Insert message
-        const result = await env.DB.prepare(
-          'INSERT INTO messages (content, email, created_at) VALUES (?, ?, datetime("now"))'
-        )
-          .bind(content, email)
-          .run();
+        // Insert message with FIFO strategy
+        // 优化点：使用 batch 同时执行插入和清理，限制最大留言数为 1000 条
+        const MAX_MESSAGES_LIMIT = 10;
+        
+        const results = await env.DB.batch([
+          // 1. 插入新留言
+          env.DB.prepare(
+            'INSERT INTO messages (content, email, created_at) VALUES (?, ?, datetime("now"))'
+          ).bind(content, email),
+          
+          // 2. 滚动删除：只保留最新的 N 条，删除其余的
+          env.DB.prepare(
+            `DELETE FROM messages 
+             WHERE id NOT IN (
+               SELECT id FROM messages ORDER BY created_at DESC LIMIT ?
+             )`
+          ).bind(MAX_MESSAGES_LIMIT)
+        ]);
 
-        if (result.success) {
+        // results[0] 是第一条插入语句的执行结果
+        const insertResult = results[0];
+
+        if (insertResult.success) {
           return new Response(
             JSON.stringify({
               success: true,
