@@ -45,6 +45,13 @@ npm install
 ### 2. 登录 Cloudflare
 
 ```bash
+全局安装wrangler插件
+npm uninstall -g wrangler
+npm install -g wrangler
+wrangler --version
+非全局安装
+npx wrangler login
+
 wrangler login
 ```
 
@@ -53,17 +60,17 @@ wrangler login
 ### 3. 创建 D1 数据库
 
 ```bash
-wrangler d1 create message-board-db
+wrangler d1 create online-message-board
 ```
 
 执行后，命令会返回数据库的 ID，类似：
 
 ```
-✅ Successfully created DB 'message-board-db'
+✅ Successfully created DB 'online-message-board'
 
 [[d1_databases]]
 binding = "DB"
-database_name = "message-board-db"
+database_name = "online-message-board"
 database_id = "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
 ```
 
@@ -74,7 +81,7 @@ database_id = "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
 ```toml
 [[d1_databases]]
 binding = "DB"
-database_name = "message-board-db"
+database_name = "online-message-board"
 database_id = "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"  # 替换为实际的 ID
 ```
 
@@ -83,16 +90,18 @@ database_id = "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"  # 替换为实际的 ID
 执行 SQL 脚本创建数据库表：
 
 ```bash
-wrangler d1 execute message-board-db --remote --file=./schema.sql
+wrangler d1 execute online-message-board --remote --file=./schema.sql
 
 // 或本地
-wrangler d1 execute message-board-db --local --file=./schema.sql
+wrangler d1 execute online-message-board --local --file=./schema.sql
+文件目录
+\online-message\.wrangler\state\v3
 ```
 
 你应该看到类似输出：
 
 ```
-🌀 Executing on message-board-db (xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx):
+🌀 Executing on online-message-board (xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx):
 🚣 Executed 2 commands in 0.123ms
 ```
 
@@ -141,10 +150,10 @@ npm run dev
 npm run deploy
 
 # 查询数据库
-npx wrangler d1 execute message-board-db --command "SELECT * FROM messages"
+npx wrangler d1 execute online-message-board --command "SELECT * FROM messages"
 
 # 清空留言（谨慎使用）
-npx wrangler d1 execute message-board-db --command "DELETE FROM messages"
+npx wrangler d1 execute online-message-board --command "DELETE FROM messages"
 ```
 
 ## 数据库管理
@@ -152,19 +161,19 @@ npx wrangler d1 execute message-board-db --command "DELETE FROM messages"
 ### 查看所有留言
 
 ```bash
-npx wrangler d1 execute message-board-db --command "SELECT * FROM messages ORDER BY created_at DESC"
+npx wrangler d1 execute online-message-board --command "SELECT * FROM messages ORDER BY created_at DESC"
 ```
 
 ### 删除特定留言
 
 ```bash
-npx wrangler d1 execute message-board-db --command "DELETE FROM messages WHERE id = 1"
+npx wrangler d1 execute online-message-board --command "DELETE FROM messages WHERE id = 1"
 ```
 
 ### 查看留言数量
 
 ```bash
-npx wrangler d1 execute message-board-db --command "SELECT COUNT(*) as total FROM messages"
+npx wrangler d1 execute online-message-board --command "SELECT COUNT(*) as total FROM messages"
 ```
 
 ## 自定义配置
@@ -217,7 +226,7 @@ npx wrangler whoami
 本地开发时，Wrangler 会自动创建本地数据库。如果遇到问题，确保已执行 schema.sql：
 
 ```bash
-npx wrangler d1 execute message-board-db --local --file=./schema.sql
+npx wrangler d1 execute online-message-board --local --file=./schema.sql
 ```
 
 ## License
